@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, LangChangeEvent } from '@ngx-translate/core';
 import Chart from 'chart.js/auto';
 
 @Component({
@@ -10,39 +10,47 @@ import Chart from 'chart.js/auto';
 export class ChartComponent implements OnInit, OnDestroy {
   private updateInterval: any;
   private chart!: Chart;
-  constructor(private translate: TranslateService) {}
+
   data = {
     labels: ['1900', '1950', '1999', '2050'],
     datasets: [
       {
-        label: 'Europe ',
+        label: 'Europe',
         backgroundColor: 'rgba(0, 0, 255, 0.2)',
         data: [408, 547, 675, 734],
       },
       {
-        label: 'Africa ',
+        label: 'Africa',
         backgroundColor: 'rgba(255, 0, 0, 0.2)',
         data: [133, 221, 783, 2478],
       },
       {
-        label: 'America ',
+        label: 'America',
         backgroundColor: 'rgb(255, 187, 71)',
         data: [135, 261, 773, 2778],
       },
       {
-        label: 'Asia ',
+        label: 'Asia',
         backgroundColor: 'rgb(128, 0, 188)',
         data: [115, 333, 763, 2378],
       },
     ],
   };
 
+  constructor(private translate: TranslateService) {}
+
   ngOnInit(): void {
     this.createChart();
+    this.updateChartLabels();
 
     this.updateInterval = setInterval(() => {
       this.updateData();
     }, 5000);
+
+    this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
+      this.updateChartLabels();
+      this.updateData();
+    });
   }
 
   ngOnDestroy(): void {
@@ -50,20 +58,15 @@ export class ChartComponent implements OnInit, OnDestroy {
   }
 
   createChart(): void {
-    const translatedLabels = this.data.datasets.map((dataset) => {
-      const translatedLabel = this.translate.instant(dataset.label);
-
-      return {
-        ...dataset,
-        label: this.translate.instant(dataset.label),
-      };
+    const translatedLabels = this.data.labels.map((label) => {
+      return this.translate.instant(label);
     });
 
     this.chart = new Chart('barChart', {
       type: 'line',
       data: {
-        ...this.data,
-        datasets: translatedLabels,
+        labels: translatedLabels,
+        datasets: this.data.datasets,
       },
       options: {
         scales: {
@@ -80,7 +83,7 @@ export class ChartComponent implements OnInit, OnDestroy {
           },
           title: {
             display: true,
-            text: 'Dynamic Bar Chart',
+            text: this.translate.instant('Dynamic Bar Chart'),
           },
         },
       },
@@ -88,33 +91,15 @@ export class ChartComponent implements OnInit, OnDestroy {
   }
 
   updateData(): void {
-    const newData = {
-      labels: ['1900', '1950', '1999', '2050'],
-      datasets: [
-        {
-          label: 'Europe',
-          backgroundColor: 'rgba(0, 0, 255, 0.2)',
-          data: this.generateRandomData(),
-        },
-        {
-          label: 'Africa',
-          backgroundColor: 'rgba(255, 0, 0, 0.2)',
-          data: this.generateRandomData(),
-        },
-        {
-          label: 'America',
-          backgroundColor: 'rgb(255, 187, 71)',
-          data: this.generateRandomData(),
-        },
-        {
-          label: 'Asia',
-          backgroundColor: 'rgb(128, 0, 188)',
-          data: this.generateRandomData(),
-        },
-      ],
-    };
+    // Ažuriranje podataka grafikona
+  }
 
-    this.chart.data = newData;
+  updateChartLabels(): void {
+    this.data.datasets.forEach((dataset) => {
+      dataset.label = this.translate.instant(dataset.label);
+    });
+
+    this.chart.data.datasets = this.data.datasets;
     this.chart.update();
   }
 
