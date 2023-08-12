@@ -39,20 +39,6 @@ export class ChartComponent implements OnInit, OnDestroy {
 
   constructor(private translate: TranslateService) {}
 
-  ngOnInit(): void {
-    this.createChart();
-    this.updateChartLabels();
-
-    this.updateInterval = setInterval(() => {
-      this.updateData();
-    }, 5000);
-
-    this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
-      this.updateChartLabels();
-      this.updateData();
-    });
-  }
-
   ngOnDestroy(): void {
     clearInterval(this.updateInterval);
   }
@@ -83,7 +69,7 @@ export class ChartComponent implements OnInit, OnDestroy {
           },
           title: {
             display: true,
-            text: this.translate.instant('Dynamic Bar Chart'),
+            text: 'Dynamic Bar Chart',
           },
         },
       },
@@ -91,7 +77,14 @@ export class ChartComponent implements OnInit, OnDestroy {
   }
 
   updateData(): void {
-    // Ažuriranje podataka grafikona
+    const newData = this.generateRandomData();
+
+    this.data.datasets.forEach((dataset) => {
+      dataset.data = newData;
+    });
+
+    this.chart.data.datasets = this.data.datasets;
+    this.chart.update();
   }
 
   updateChartLabels(): void {
@@ -110,5 +103,18 @@ export class ChartComponent implements OnInit, OnDestroy {
       Math.floor(Math.random() * 2000),
       Math.floor(Math.random() * 2000),
     ];
+  }
+  ngOnInit(): void {
+    this.createChart();
+    this.updateChartLabels();
+
+    this.updateInterval = setInterval(() => {
+      this.updateData();
+    }, 5000);
+
+    this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
+      this.updateChartLabels();
+      this.updateData();
+    });
   }
 }
